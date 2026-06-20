@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ME1 — 100% Completion Log</title>
+<!-- Home-screen / full-screen app behaviour (works for a locally-saved file) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ME1 100%">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0c10">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%230a0c10'/%3E%3Crect x='28' y='40' width='124' height='100' rx='6' fill='none' stroke='%23d63a2f' stroke-width='6'/%3E%3Ctext x='90' y='108' font-family='Arial Black,sans-serif' font-size='58' font-weight='900' fill='%23d63a2f' text-anchor='middle'%3EN7%3C/text%3E%3C/svg%3E">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --void:#0a0c10; --panel:#11151c; --panel-edge:#1d2530;
+    --n7-red:#d63a2f; --n7-red-bright:#ff4a3d; --amber:#e8a13c;
+    --ice:#4ec3e0; --text:#c5cdd6; --text-dim:#6c7884; --done:#3fae6b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Rajdhani',sans-serif;
+    background:radial-gradient(ellipse at top,#141923 0%,var(--void) 60%);
+    color:var(--text); min-height:100vh; padding:0 0 90px; line-height:1.4;
+  }
+  .scanlines::before {
+    content:""; position:fixed; inset:0;
+    background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 3px);
+    pointer-events:none; z-index:999; opacity:0.4;
+  }
+  header {
+    border-bottom:1px solid var(--panel-edge);
+    background:linear-gradient(180deg,#0d1016 0%,transparent 100%);
+    padding:34px 24px 26px; position:relative; overflow:hidden;
+  }
+  header::before {
+    content:"N7"; position:absolute; right:-10px; top:-26px;
+    font-family:'Orbitron',sans-serif; font-weight:900; font-size:180px;
+    color:#fff; opacity:0.02; letter-spacing:-8px;
+  }
+  .wrap { max-width:860px; margin:0 auto; }
+  .eyebrow {
+    font-family:'JetBrains Mono',monospace; font-size:11px;
+    letter-spacing:0.35em; color:var(--n7-red); text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before { content:""; width:22px; height:2px; background:var(--n7-red); }
+  h1 {
+    font-family:'Orbitron',sans-serif; font-weight:900;
+    font-size:clamp(28px,6vw,46px); color:#f0f3f6;
+    letter-spacing:0.02em; margin:10px 0 4px; line-height:1;
+  }
+  h1 span { color:var(--n7-red); }
+  .subtitle { font-size:15px; color:var(--text-dim); letter-spacing:0.04em; font-weight:500; }
+
+  /* control bar */
+  .controls {
+    max-width:860px; margin:20px auto 0; padding:0 24px;
+    display:flex; flex-wrap:wrap; gap:18px 26px; align-items:center;
+  }
+  .toggle-row { display:flex; gap:10px; align-items:center; }
+  .toggle-label { font-size:13px; letter-spacing:0.05em; color:var(--text-dim); font-weight:600; text-transform:uppercase; }
+  .switch { position:relative; width:42px; height:22px; flex-shrink:0; cursor:pointer; }
+  .switch input { opacity:0; width:0; height:0; }
+  .slider {
+    position:absolute; inset:0; background:#080a0e; border:1px solid var(--panel-edge);
+    border-radius:22px; transition:0.2s;
+  }
+  .slider::before {
+    content:""; position:absolute; height:14px; width:14px; left:3px; top:3px;
+    background:var(--text-dim); border-radius:50%; transition:0.2s;
+  }
+  .switch input:checked + .slider { background:rgba(78,195,224,0.2); border-color:var(--ice); }
+  .switch input:checked + .slider::before { transform:translateX(20px); background:var(--ice); }
+
+  .seg { display:flex; border:1px solid var(--panel-edge); border-radius:3px; overflow:hidden; }
+  .seg button {
+    font-family:'Rajdhani',sans-serif; font-weight:600; font-size:12px;
+    letter-spacing:0.08em; text-transform:uppercase; background:transparent;
+    color:var(--text-dim); border:none; padding:7px 14px; cursor:pointer; transition:0.15s;
+  }
+  .seg button.active { background:var(--n7-red); color:#fff; }
+  .seg button:not(.active):hover { color:var(--text); }
+
+  .progress-shell { max-width:860px; margin:22px auto 0; padding:0 24px; }
+  .progress-meta {
+    display:flex; justify-content:space-between; align-items:flex-end;
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    color:var(--text-dim); margin-bottom:8px; letter-spacing:0.08em;
+  }
+  .progress-pct { font-family:'Orbitron',sans-serif; font-weight:700; font-size:22px; color:var(--amber); }
+  .trilogy-total {
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.1em;
+    color:var(--text-dim); margin-top:9px; text-align:right;
+  }
+  .trilogy-total b { color:var(--ice); font-weight:500; }
+  .trilogy-total .seg-done { color:var(--done); }
+  .bar {
+    height:10px; background:#080a0e; border:1px solid var(--panel-edge);
+    position:relative; overflow:hidden;
+    clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);
+  }
+  .bar-fill {
+    height:100%; background:linear-gradient(90deg,var(--n7-red) 0%,var(--n7-red-bright) 100%);
+    box-shadow:0 0 14px rgba(214,58,47,0.6);
+    transition:width 0.5s cubic-bezier(.2,.8,.2,1); width:0;
+  }
+
+  /* priority strip */
+  .priority {
+    max-width:860px; margin:24px auto 0; padding:0 24px;
+  }
+  .priority-inner {
+    background:linear-gradient(90deg,rgba(214,58,47,0.08),transparent);
+    border:1px solid rgba(214,58,47,0.3); border-left:3px solid var(--n7-red);
+    padding:14px 18px;
+  }
+  .priority-title {
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.2em;
+    color:var(--n7-red-bright); text-transform:uppercase; margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .priority-title::before { content:"⚠"; }
+  .priority-item { font-size:14px; color:var(--text); margin:4px 0; padding-left:14px; position:relative; }
+  .priority-item::before { content:"›"; position:absolute; left:0; color:var(--n7-red); }
+  .priority-item.cleared { color:var(--text-dim); text-decoration:line-through; text-decoration-color:var(--done); }
+
+  main { max-width:860px; margin:34px auto 0; padding:0 24px; }
+  .phase {
+    margin-bottom:30px; background:var(--panel);
+    border:1px solid var(--panel-edge); border-left:3px solid var(--n7-red); position:relative;
+  }
+  .phase.planner-group { border-left-color:var(--ice); }
+  .phase-head {
+    display:flex; align-items:baseline; gap:14px; padding:18px 22px 14px;
+    border-bottom:1px solid var(--panel-edge); cursor:pointer; user-select:none;
+  }
+  .phase-num {
+    font-family:'Orbitron',sans-serif; font-weight:900; font-size:13px;
+    color:var(--n7-red); border:1px solid var(--n7-red); border-radius:2px;
+    padding:2px 7px; letter-spacing:0.1em; flex-shrink:0;
+  }
+  .planner-group .phase-num { color:var(--ice); border-color:var(--ice); }
+  .phase-title {
+    font-family:'Orbitron',sans-serif; font-weight:700; font-size:16px;
+    color:#e8edf2; letter-spacing:0.03em; flex:1;
+  }
+  .phase-count { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim); }
+  .phase-note { padding:12px 22px 4px; font-size:14px; color:var(--text-dim); line-height:1.5; }
+  .phase-note em { color:var(--ice); font-style:normal; }
+
+  ul { list-style:none; padding:8px 14px 16px; }
+  li.item { border-radius:3px; transition:background 0.15s; }
+  li.item:hover { background:rgba(255,255,255,0.025); }
+  .item-row { display:flex; align-items:flex-start; gap:12px; padding:11px 10px; }
+  .checkzone { display:flex; gap:12px; flex:1; cursor:pointer; min-width:0; }
+  .box {
+    width:19px; height:19px; flex-shrink:0; margin-top:1px;
+    border:1.5px solid var(--text-dim); border-radius:2px; position:relative; transition:all 0.18s;
+  }
+  li.done .box { border-color:var(--done); background:var(--done); }
+  li.done .box::after {
+    content:""; position:absolute; left:5px; top:1px; width:5px; height:10px;
+    border:solid #0a0c10; border-width:0 2.5px 2.5px 0; transform:rotate(45deg);
+  }
+  .task { flex:1; min-width:0; }
+  .task-name { font-size:15.5px; font-weight:600; color:var(--text); letter-spacing:0.01em; }
+  li.done .task-name { color:var(--text-dim); text-decoration:line-through; text-decoration-color:var(--done); }
+  .task-desc { font-size:13px; color:var(--text-dim); margin-top:2px; font-weight:400; }
+
+  .tag {
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.1em;
+    text-transform:uppercase; padding:2px 6px; border-radius:2px; margin-left:8px;
+    vertical-align:middle; white-space:nowrap;
+  }
+  .tag.miss { background:rgba(214,58,47,0.15); color:var(--n7-red-bright); border:1px solid rgba(214,58,47,0.4); }
+  .tag.opt  { background:rgba(108,120,132,0.12); color:var(--text-dim); border:1px solid var(--panel-edge); }
+  .tag.loc  { background:rgba(78,195,224,0.12); color:var(--ice); border:1px solid rgba(78,195,224,0.35); }
+
+  /* counter stepper */
+  .counter {
+    display:flex; align-items:center; gap:0; flex-shrink:0; margin-top:-2px;
+    border:1px solid var(--panel-edge); border-radius:3px; overflow:hidden;
+  }
+  .counter button {
+    width:26px; height:26px; background:#0c0f15; border:none; color:var(--text-dim);
+    font-size:16px; font-weight:700; cursor:pointer; transition:0.15s; line-height:1;
+  }
+  .counter button:hover { background:var(--n7-red); color:#fff; }
+  .counter .cval {
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text);
+    min-width:48px; text-align:center; padding:0 4px; background:#080a0e;
+  }
+  .counter .cval.full { color:var(--done); }
+
+  .btns-right { display:flex; gap:6px; flex-shrink:0; }
+  .guide-btn, .note-btn {
+    font-family:'JetBrains Mono',monospace; font-size:10px;
+    letter-spacing:0.12em; text-transform:uppercase; background:transparent;
+    color:var(--text-dim); border:1px solid var(--panel-edge); padding:4px 9px;
+    cursor:pointer; border-radius:2px; transition:all 0.15s; margin-top:1px; align-self:flex-start;
+  }
+  .guide-btn:hover, .guide-btn.open { border-color:var(--ice); color:var(--ice); }
+  .note-btn:hover, .note-btn.open { border-color:var(--amber); color:var(--amber); }
+  .note-btn.has-note { border-color:var(--amber); color:var(--amber); }
+
+  .guide {
+    display:none; margin:0 10px 6px 41px; padding:12px 14px;
+    background:#0c0f15; border-left:2px solid var(--ice);
+    font-size:14px; line-height:1.55; color:var(--text);
+  }
+  .guide.show { display:block; }
+  .guide strong { color:var(--ice); font-weight:600; }
+  .guide .hl { color:var(--amber); }
+  .guide .spoiler, .phase-note .spoiler {
+    background:var(--text-dim); color:var(--text-dim); border-radius:2px;
+    padding:0 2px; cursor:default; transition:0.2s; user-select:none;
+  }
+  body.show-spoilers .guide .spoiler,
+  body.show-spoilers .phase-note .spoiler { background:rgba(214,58,47,0.12); color:var(--n7-red-bright); }
+
+  .note-area {
+    display:none; margin:0 10px 8px 41px;
+  }
+  .note-area.show { display:block; }
+  .note-area textarea {
+    width:100%; background:#0c0f15; border:1px solid var(--panel-edge);
+    border-left:2px solid var(--amber); color:var(--text);
+    font-family:'Rajdhani',sans-serif; font-size:14px; padding:9px 12px;
+    resize:vertical; min-height:54px; border-radius:0 2px 2px 0;
+  }
+  .note-area textarea:focus { outline:none; border-color:var(--amber); }
+  .note-area textarea::placeholder { color:var(--text-dim); }
+
+  footer { max-width:860px; margin:30px auto 0; padding:0 24px; display:flex; gap:12px; flex-wrap:wrap; }
+  .btn {
+    font-family:'Rajdhani',sans-serif; font-weight:600; font-size:13px;
+    letter-spacing:0.08em; text-transform:uppercase; background:transparent;
+    color:var(--text-dim); border:1px solid var(--panel-edge); padding:9px 16px;
+    cursor:pointer; transition:all 0.15s; border-radius:2px;
+  }
+  .btn:hover { border-color:var(--n7-red); color:var(--n7-red-bright); }
+  .btn.amber:hover { border-color:var(--amber); color:var(--amber); }
+
+  .complete-banner { display:none; text-align:center; margin:24px auto 0; max-width:860px; padding:0 24px; }
+  .complete-banner.show { display:block; }
+  .complete-banner div {
+    font-family:'Orbitron',sans-serif; font-weight:900; font-size:18px;
+    color:var(--amber); letter-spacing:0.15em; border:1px solid var(--amber);
+    padding:16px; background:rgba(232,161,60,0.06); box-shadow:0 0 30px rgba(232,161,60,0.15);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 30px rgba(232,161,60,0.15);} 50%{box-shadow:0 0 50px rgba(232,161,60,0.35);} }
+
+  /* export modal */
+  .modal-bg {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+    z-index:1000; align-items:center; justify-content:center; padding:24px;
+  }
+  .modal-bg.show { display:flex; }
+  .modal {
+    background:var(--panel); border:1px solid var(--panel-edge); border-top:3px solid var(--ice);
+    max-width:560px; width:100%; padding:24px;
+  }
+  .modal h3 { font-family:'Orbitron',sans-serif; color:#e8edf2; font-size:16px; margin-bottom:14px; letter-spacing:0.04em; }
+  .modal textarea {
+    width:100%; height:240px; background:#080a0e; border:1px solid var(--panel-edge);
+    color:var(--text); font-family:'JetBrains Mono',monospace; font-size:12px;
+    padding:12px; resize:none; line-height:1.5;
+  }
+  .modal-actions { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
+  @media (max-width:560px) {
+    .item-row { flex-wrap:wrap; }
+    .btns-right { margin-left:31px; }
+    .counter { margin-left:31px; }
+  }
+</style>
+</head>
+<body class="scanlines">
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Systems Alliance // Completion Protocol</div>
+      <h1>MASS EFFECT <span id="gameTitleNum">1</span></h1>
+      <div class="subtitle">Legendary Edition — Trilogy 100% Log</div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="toggle-row">
+      <span class="toggle-label">Game</span>
+      <div class="seg" id="gameSeg">
+        <button data-game="me1" class="active">ME1</button>
+        <button data-game="me2">ME2</button>
+        <button data-game="me3">ME3</button>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">View</span>
+      <div class="seg" id="viewSeg">
+        <button data-view="phase" class="active">By Phase</button>
+        <button data-view="planner">Session Planner</button>
+        <button data-view="route">Route</button>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Spoilers</span>
+      <label class="switch"><input type="checkbox" id="spoilerToggle"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="progress-shell">
+    <div class="progress-meta">
+      <span id="statusText">CALIBRATING...</span>
+      <span class="progress-pct" id="pct">0%</span>
+    </div>
+    <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+    <div class="trilogy-total" id="trilogyTotal"></div>
+  </div>
+
+  <div class="priority" id="priorityStrip"></div>
+  <div class="complete-banner" id="banner"><div>◆ MISSION COMPLETE — PLATINUM SECURED ◆</div></div>
+
+  <main id="phases"></main>
+
+  <footer>
+    <button class="btn" id="expandAll">Expand all</button>
+    <button class="btn" id="collapseAll">Collapse all</button>
+    <button class="btn amber" id="exportBtn">Export / Import</button>
+    <button class="btn" id="reset">Reset log</button>
+  </footer>
+
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h3>Export / Import Progress</h3>
+      <textarea id="exportArea" spellcheck="false"></textarea>
+      <div class="modal-actions">
+        <button class="btn amber" id="copyBtn">Copy</button>
+        <button class="btn amber" id="importBtn">Import pasted code</button>
+        <button class="btn" id="closeModal">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* item fields:
+   n=name, d=short desc, g=guide html, t=tag (miss/opt),
+   max=counter target (enables stepper), loc=session-planner group key */
+const DATA_ME1 = [
+  { num:"P1", title:"Throwaway Adept — Biotic Grind",
+    note:"Make a generic Adept (skip the creator). <em>Any damageable target counts</em> — crates, wildlife, Citadel transit terminals, the Mako. Squadmate casts count too.",
+    items:[
+      { n:"Throw Mastery", d:"Use Throw 25 times", max:25, loc:"grind",
+        g:"Throw is available from Eden Prime onward. <strong>Save in front of a Citadel Rapid Transit terminal</strong> with cooldowns up, cast Throw, then reload — <span class='hl'>progress saves at the profile level, not the save file</span>, so reloading the same save 25 times grinds it out in minutes. The C-Sec Atrium terminal is the popular spot." },
+      { n:"Warp Mastery", d:"Use Warp 25 times", max:25, loc:"grind",
+        g:"Same terminal-and-reload method as Throw. Warp must hit a target to count, so aim at the transit terminal or any destructible object." },
+      { n:"Barrier Mastery", d:"Use Barrier 25 times", max:25, loc:"grind",
+        g:"The easiest of the set — <strong>Barrier is self-cast and needs no target</strong>. Stand anywhere, cast, wait for cooldown, repeat. No terminal needed." },
+      { n:"Lift Mastery", d:"Use Lift 25 times", max:25, loc:"grind",
+        g:"<span class='hl'>Requires 6 points in Throw before Lift unlocks.</span> Worth prioritising — finishing it grants <strong>Lift as a bonus talent</strong>, the strongest one to carry into your main run. Grind via the terminal method." },
+      { n:"Singularity Mastery", d:"Use Singularity 25 times", max:25, loc:"grind",
+        g:"A higher-tier biotic talent — invest several points to unlock it. Once available, grind on the terminal or on grouped enemies." },
+      { n:"Stasis Mastery", d:"Use Stasis 25 times", max:25, loc:"grind",
+        g:"Must be cast on a valid target to count. Terminal-and-reload works; otherwise use it freely in combat since it's strong crowd control anyway." },
+    ]},
+  { num:"P2", title:"Throwaway Engineer — Tech Grind",
+    note:"Make a generic Engineer. Same terminal-and-reload farming applies. Banking talent points then hard-saving before spending lets you unlock the deeper abilities efficiently.",
+    items:[
+      { n:"Sabotage Specialist", d:"Use Sabotage 25 times", max:25, loc:"grind",
+        g:"Available early for the Engineer. Cast on the Citadel transit terminal and reload, or use it on enemy weapons in combat." },
+      { n:"Electronics Specialist", d:"Use Shield Overload 25 times", max:25, loc:"grind",
+        g:"Use Overload 25 times. <strong>Note:</strong> this is the *usage* achievement — distinct from the combat 'deplete 25 shields' one in Phase 3. Terminal-and-reload grinds it fast." },
+      { n:"Damping Specialist", d:"Use Damping Field 25 times", max:25, loc:"grind",
+        g:"A mid-tier tech power; invest points to unlock, then farm on the terminal. Damping must hit a target to register." },
+      { n:"Neural Shock Specialist", d:"Use Neural Shock 25 times", max:25, loc:"grind",
+        g:"<span class='hl'>The one tech power Liara/Tali can't help with</span> — only Kaidan, Engineer, or Sentinel have it. Your throwaway Engineer covers it. Cast on any organic target." },
+      { n:"AI Hacking Specialist", d:"Use AI Hacking 25 times", max:25, loc:"grind",
+        g:"<strong>Requires 7 points in Decryption to unlock.</strong> Bank points, hard-save, then dump them in. Hack synthetic enemies, or reload the terminal save repeatedly." },
+    ]},
+  { num:"P3", title:"Main Run — Completionist Playthrough",
+    note:"Your real Shepard, any class. <em>Do everything</em>: every mission, every assignment, every planet, every dialogue. With abilities already cleared, this run is pure content.",
+    items:[
+      { n:"Overload Specialist", d:"Disrupt the shields of 25 enemies", max:25, loc:"combat",
+        g:"Different from the Phase 2 'use Overload' one — this needs you to <strong>fully deplete an enemy's shields</strong> 25 times. Happens naturally against shielded foes; prioritise Overload on them." },
+      { n:"Incineration Specialist", d:"Destroy the armor of 25 enemies", max:25, loc:"combat",
+        g:"Strip the armor off 25 armored enemies (via Incinerate, armor-stripping powers, or sustained fire). Occurs naturally on higher difficulties where armor is common." },
+      { n:"Warp Specialist", d:"Warp the barriers of 25 enemies", max:25, loc:"combat",
+        g:"Use Warp to break the biotic barriers of 25 enemies. Target krogan and other barrier-users; comes naturally if you favor Warp." },
+      { n:"First Aid Specialist", d:"Use Medi-Gel 50 times", max:50, loc:"combat",
+        g:"Heal with Medi-Gel 50 times. You must have Medi-Gel in stock (consumed per use). <span class='hl'>If you do the Insanity run, you'll get this without trying.</span> Otherwise heal liberally even at low damage." },
+      { n:"Head Hunter", d:"30 headshot kills on humanoids", max:30, loc:"combat",
+        g:"Land 30 killing headshots on humanoid enemies with any weapon. Pistol or sniper is easiest. Unlocking <strong>Rich</strong> lets you buy high-precision Spectre gear to make headshots trivial." },
+      { n:"Big Game Hunter", d:"Defeat a Thresher Maw", loc:"explore",
+        g:"Kill a Thresher Maw — the giant worm bosses on certain uncharted worlds. Fight from the <strong>Mako</strong>: circle and fire the main cannon, never leave the vehicle. The Edolus assignment (UNC: Missing Marines) has a guaranteed one." },
+      { n:"Pistol kills", d:"Get kills with the pistol", loc:"combat",
+        g:"One of four weapon achievements. <span class='hl'>Your class doesn't matter</span> — any class can unlock all four. Pistols are accurate and always equipped, so this comes naturally. Tame wildlife (space cows, gas bags, space monkeys) counts." },
+      { n:"Shotgun kills", d:"Get kills with the shotgun", loc:"combat",
+        g:"Equip and kill with the shotgun. Get close, or finish weakened enemies at range. Switch to it deliberately for a stretch of combat to rack up kills." },
+      { n:"Assault rifle kills", d:"Get kills with the assault rifle", loc:"combat",
+        g:"Equip and kill with the assault rifle. The most general-purpose weapon — easy to grind by using it as your main gun for several missions." },
+      { n:"Sniper rifle kills", d:"Get kills with the sniper rifle", loc:"combat",
+        g:"Equip and kill with the sniper rifle. Pairs well with Head Hunter. Buying high-precision Spectre gear after unlocking <strong>Rich</strong> makes sniping trivial for any class." },
+      { n:"Tactician", d:"Hit 20 targets with combined biotic powers", max:20, loc:"combat",
+        g:"Hit <strong>20 different targets with multiple biotic powers</strong> to combine effects (e.g. Lift then Throw, or Stasis then Warp) on the same enemy. Easiest with a biotic squadmate alongside you." },
+      { n:"Medal of Exploration I", d:"Land on 1 uncharted world", loc:"explore",
+        g:"Land on a single uncharted world. <span class='hl'>Glitched in your favor:</span> landing, returning to the Normandy, and re-landing on the <strong>same planet</strong> increments the counter — so all three Exploration medals can be earned off one planet by repeating the drop." },
+      { n:"Medal of Exploration II", d:"Land on 4 uncharted worlds", loc:"explore",
+        g:"Land on 4 uncharted worlds total. The re-landing glitch counts each drop, so you don't need four distinct planets — though normal exploration gets you here anyway." },
+      { n:"Medal of Exploration III", d:"Land on 8 uncharted worlds", loc:"explore",
+        g:"Land on 8 uncharted worlds total. Either explore widely (you'll easily pass 8 in a completionist run) or repeat-drop one planet 8 times using the re-landing glitch." },
+      { n:"Completionist", d:"Complete 50 of 76 missions + assignments", loc:"explore",
+        g:"Awarded for finishing the majority of the 76 missions/assignments. A true do-everything run pops this around <strong>Feros or Virmire</strong>. Some report it needing a few more than 50 due to a counting quirk — it triggers regardless if you complete everything." },
+      { n:"Soldier Ally", d:"5 missions with Ashley", loc:"citadel",
+        g:"Complete 5 missions/assignments with <strong>Ashley</strong> in your active party. <span class='hl'>Best method for all six allies:</span> after recruiting Liara on Therum you'll have everyone. Hard-save on the Citadel, run 5 assignments with one pairing, reload, swap squad, repeat until all pop — then play on with whoever you like." },
+      { n:"Sentinel Ally", d:"5 missions with Kaidan", loc:"citadel",
+        g:"Complete 5 missions/assignments with <strong>Kaidan</strong> in your party. <span class='hl'>Do this before Virmire</span> — <span class='spoiler'>Kaidan can be killed on Virmire depending on whether you save him or Ashley</span>, and you'd lose the chance on that playthrough." },
+      { n:"Turian Ally", d:"5 missions with Garrus", loc:"citadel",
+        g:"Complete 5 missions/assignments with <strong>Garrus</strong> in your party. Use the Citadel hard-save-and-reload assignment method to knock it out quickly." },
+      { n:"Krogan Ally", d:"5 missions with Wrex", loc:"citadel",
+        g:"Complete 5 missions/assignments with <strong>Wrex</strong> in your party. <span class='spoiler'>Wrex can die on Virmire if you can't talk him down with enough Charm/Intimidate or Paragon/Renegade standing</span> — secure this beforehand to be safe." },
+      { n:"Quarian Ally", d:"5 missions with Tali", loc:"citadel",
+        g:"Complete 5 missions/assignments with <strong>Tali</strong> in your party. Easy via the Citadel assignment grind." },
+      { n:"Asari Ally", d:"5 missions with Liara", loc:"citadel",
+        g:"Complete 5 missions/assignments with <strong>Liara</strong> in your party. You can only start this after recruiting her on Therum, so do that mission early to open up the full squad rotation." },
+      { n:"Search & Rescue", d:"Complete Therum (find Liara)", loc:"story",
+        g:"Locate Dr. T'Soni in the Artemis Tau cluster. Unmissable story medal — unlocks on completing the Therum mission. Do it early to unlock Liara for the ally grind." },
+      { n:"Medal of Heroism", d:"Complete Feros", loc:"story",
+        g:"Unmissable story medal for finishing the Feros mission." },
+      { n:"Honorarium of Corporate Service", d:"Complete Noveria", loc:"story",
+        g:"Unmissable story medal for finishing the Noveria mission." },
+      { n:"Council Legion of Merit", d:"Complete Virmire", loc:"story",
+        g:"Unmissable story medal for finishing Virmire. <span class='spoiler'>This is the mission where you choose to save Ashley or Kaidan — the other dies. Resolve your ally + romance achievements for the at-risk character first.</span>" },
+      { n:"Medal of Honor", d:"Finish the game on any difficulty", loc:"story",
+        g:"Complete the game once on any difficulty. <strong>Also unlocks the weapon bonus skills.</strong> Unmissable." },
+      { n:"Charismatic / max alignment", d:"Resolve an impossible situation with Charm/Intimidate", loc:"story",
+        g:"<span class='hl'>Commit to one alignment</span> — splitting points locks you out of high-level Charm/Intimidate checks. <strong>Charismatic</strong> (missable) needs you to resolve an 'impossible' situation with a maxed track. <span class='spoiler'>The clearest one is talking Wrex down on Virmire.</span>", t:"miss" },
+      { n:"Colonial Savior", d:"Complete Bring Down the Sky DLC", loc:"explore",
+        g:"Finish the Bring Down the Sky asteroid mission (included in Legendary Edition, in the Asgard system). Straightforward — just play it through." },
+      { n:"Paramour", d:"Romance Ashley / Kaidan / Liara", t:"miss", loc:"story",
+        g:"Establish a full romance. <strong>MaleShep → Ashley or Liara; FemShep → Kaidan or Liara.</strong> Pursue dialogue at each return to the Normandy. <span class='hl'>Don't romance two at once</span> or they confront you. <span class='spoiler'>Your Virmire save-choice can kill Ashley or Kaidan — don't lose your love interest there.</span>" },
+    ]},
+  { num:"P3+", title:"Missable — Clear Before Ilos (Point of No Return)",
+    note:"These lock out once you commit to the final mission. Handle them on the Citadel / in the galaxy first.",
+    items:[
+      { n:"Protheans codex entry", d:"First Anderson/Nihlus conversation", t:"miss", loc:"early",
+        g:"<span class='hl'>Highly missable, very first hour.</span> During your first conversation with Captain Anderson and Nihlus aboard the Normandy, choose <strong>'Investigate'</strong> and pick the Protheans option <em>before</em> ending the talk / leaving the ship the first time. Needed for full codex completion." },
+      { n:"Scan Keepers (Rich / Archivist)", d:"Citadel exploration content", t:"miss", loc:"citadel",
+        g:"Scanning the Keepers around the Citadel feeds the exploration/credit achievements (Rich, Archivist). Do this during Citadel visits before the finale — once you head to Ilos, you can't return." },
+      { n:"All assignments + planet exploration", d:"Finish before leaving for Ilos", t:"miss", loc:"explore",
+        g:"Every uncharted-world drop and side assignment must be done pre-Ilos. After the final mission triggers, the galaxy map closes. This also secures Completionist and the Exploration medals." },
+    ]},
+  { num:"P4", title:"Insanity — Optional, On New Game+",
+    note:"Doesn't count toward the ME1 platinum — it lives on the separate cross-trilogy Legendary list. Best done on NG+ after your completionist run.",
+    items:[
+      { n:"Insanity I", d:"Finish ME1 on Insanity, no difficulty change", t:"opt", loc:"endgame",
+        g:"Complete the game on Insanity <strong>without changing difficulty mid-run</strong>. In Legendary Edition you can pick Insanity from the start, but it's far easier on <span class='hl'>New Game+</span> with a leveled, geared Shepard. Carrying Lift as your bonus talent helps enormously." },
+    ]},
+];
+
+// Session-planner groupings: ordered, with location framing
+const PLANNER_ME1 = [
+  { key:"early",   num:"01", title:"First Hour — Don't Miss These",
+    note:"Catch these before you get swept into the story." },
+  { key:"grind",   num:"02", title:"Citadel Terminal — Ability Grind",
+    note:"Park at a Rapid Transit terminal (C-Sec Atrium), save, cast, reload. <em>Knocks out all the 25-use ability achievements in one sitting.</em>" },
+  { key:"citadel", num:"03", title:"On the Citadel — Squad & Scans",
+    note:"Hard-save and rotate squadmates through assignments; scan Keepers while you're here." },
+  { key:"story",   num:"04", title:"Story Missions & Choices",
+    note:"The four main worlds plus romance and alignment payoffs. <em>Resolve at-risk characters before Virmire.</em>" },
+  { key:"explore", num:"05", title:"Galaxy Map — Explore & Assignments",
+    note:"Uncharted worlds, the Thresher Maw, DLC, and the full assignment sweep. Clear before Ilos." },
+  { key:"combat",  num:"06", title:"Anywhere — Combat Counters",
+    note:"These tick up naturally as you fight. Just keep an eye on the laggards." },
+  { key:"endgame", num:"07", title:"Endgame / New Game+",
+    note:"Save the Insanity run for a geared NG+ Shepard." },
+];
+
+// Optimal main-run route — ordered steps. Each step lists the achievements it secures.
+// Items are matched to checkboxes by name, so ticking here ticks everywhere.
+const ROUTE_ME1 = [
+  { num:"01", title:"Eden Prime — opening mission",
+    body:"<span class='hl'>Before you leave the Normandy</span>, in the first Anderson/Nihlus talk, choose <strong>Investigate → Protheans</strong> for the codex entry. Then play Eden Prime. Start spreading weapon usage from here.",
+    secures:["Protheans codex entry"] },
+  { num:"02", title:"The Citadel — first visit",
+    body:"Work through the opening Citadel content and become a Spectre. <span class='hl'>Scan Keepers</span> as you move around. Don't deep-grind assignments yet — you don't have Liara, so you can't rotate the full squad.",
+    secures:["Scan Keepers (Rich / Archivist)"] },
+  { num:"03", title:"Therum — recruit Liara FIRST",
+    body:"Of the open story worlds, do <strong>Therum first</strong>. Recruiting Liara gives you the complete six-squadmate roster, which unlocks the efficient ally grind in the next step.",
+    secures:["Search & Rescue","Asari Ally"] },
+  { num:"04", title:"Citadel — ally rotation + terminal grind",
+    body:"Now the big efficiency stop. <strong>Hard-save on the Citadel.</strong> Run 5 assignments with one squad pairing, reload, swap, repeat until all six Ally achievements pop. While here, park at the <span class='hl'>C-Sec Atrium transit terminal</span> and grind every 25-use ability (save → cast → reload). Prioritise the <strong>Ashley, Kaidan and Wrex</strong> ally achievements — they're at risk on Virmire.",
+    secures:["Soldier Ally","Sentinel Ally","Turian Ally","Krogan Ally","Quarian Ally"] },
+  { num:"05", title:"Galaxy map — explore, Maw, DLC",
+    body:"Sweep uncharted worlds for the Exploration medals (remember the <span class='hl'>re-land-the-same-planet glitch</span>). Take the Edolus assignment for a guaranteed <strong>Thresher Maw</strong>. Clear <strong>Bring Down the Sky</strong> in the Asgard system. Keep combat counters ticking.",
+    secures:["Medal of Exploration I","Medal of Exploration II","Medal of Exploration III","Big Game Hunter","Colonial Savior"] },
+  { num:"06", title:"Feros & Noveria",
+    body:"Knock out two of the remaining story worlds in either order. Keep pushing your chosen alignment in dialogue and progressing your romance on Normandy returns.",
+    secures:["Medal of Heroism","Honorarium of Corporate Service"] },
+  { num:"07", title:"Pre-Virmire checkpoint — LAST CALL",
+    body:"<span class='hl'>Stop and verify before you start Virmire.</span> <span class='spoiler'>Virmire forces you to save Ashley or Kaidan — the other dies — and Wrex can die there too.</span> Confirm the Ally achievements for <strong>both</strong> Ashley and Kaidan, plus Wrex, are already done. Lock in your romance with whoever's at risk. Make sure your alignment is high enough for the impossible-situation check.",
+    secures:["Charismatic / max alignment","Paramour"] },
+  { num:"08", title:"Virmire",
+    body:"Play it through and make your choices knowing the at-risk achievements are already secured.",
+    secures:["Council Legion of Merit"] },
+  { num:"09", title:"Final assignment sweep — before Ilos",
+    body:"<span class='hl'>Last chance before the point of no return.</span> Finish every remaining assignment and uncharted world. This secures Completionist and closes out anything missable. Verify the priority strip up top is empty.",
+    secures:["Completionist","All assignments + planet exploration"] },
+  { num:"10", title:"Ilos & the endgame",
+    body:"Once you head to Ilos the galaxy map closes — so only proceed when everything above is done. Finishing the game grants the final medal and the weapon bonus skills.",
+    secures:["Medal of Honor"] },
+  { num:"11", title:"New Game+ — Insanity (optional)",
+    body:"For the cross-trilogy Insanity trophy, start an <strong>NG+</strong> with your leveled, geared Shepard and Lift as a bonus talent. Far easier than a fresh Insanity run.",
+    secures:["Insanity I"] },
+];
+
+/* ============ MASS EFFECT 2 ============ */
+const DATA_ME2 = [
+  { num:"P1", title:"Recruitment — Build Your Team",
+    note:"Recruit every available squadmate. Each recruit is its own achievement. Talk to everyone on the Normandy after each mission so loyalty missions open up.",
+    items:[
+      { n:"The Professor", d:"Recruit Mordin", loc:"recruit",
+        g:"Recruit the salarian scientist Mordin on Omega. Story-gated early recruit — unmissable on the critical path." },
+      { n:"The Archangel", d:"Recruit Garrus", loc:"recruit",
+        g:"Recruit Archangel (Garrus) on Omega. <span class='hl'>Talk to him often afterward</span> — his loyalty mission (Eye for an Eye) only opens through conversation." },
+      { n:"The Convict", d:"Recruit Jack", loc:"recruit",
+        g:"Recruit the convict Jack from the Purgatory prison ship." },
+      { n:"The Krogan", d:"Recruit Grunt", loc:"recruit",
+        g:"Obtain and release Grunt from his tank. His loyalty mission (Rite of Passage) contains the missable Thresher Maw fight — see Big Game Hunter." },
+      { n:"The Justicar", d:"Recruit Samara", loc:"recruit",
+        g:"Recruit the justicar Samara on Illium." },
+      { n:"The Assassin", d:"Recruit Thane", loc:"recruit",
+        g:"Recruit the assassin Thane on Illium." },
+      { n:"The Quarian", d:"Recruit Tali", loc:"recruit",
+        g:"Recruit Tali'Zorah. Her loyalty mission (Treason) is a court trial — your choices there affect ME3." },
+      { n:"Broke, Blind, and Bedlam", d:"Recruit Kasumi (DLC)", loc:"recruit",
+        g:"Recruit the thief Kasumi (Kasumi: Stolen Memory DLC, included in LE). Her loyalty mission follows immediately." },
+      { n:"Friend or Foe", d:"Obtain geth tech (recruit Legion)", loc:"recruit",
+        g:"Acquire Legion during the Reaper IFF mission. <span class='hl'>Timing matters</span> — see No One Left Behind for why you don't activate Legion's recruitment too early." },
+    ]},
+  { num:"P2", title:"Loyalty — Earn Every Squadmate's Trust",
+    note:"Each loyalty mission is an achievement. <em>All loyalty missions are missable</em> — they only appear if you keep talking to squadmates between missions. Loyalty is also required for No One Left Behind.",
+    items:[
+      { n:"The Cure", d:"Mordin's loyalty", loc:"loyalty",
+        g:"Resolve Mordin's loyalty mission (Old Blood); deal with Maelon as your morality dictates." },
+      { n:"Eye for an Eye", d:"Garrus's loyalty", loc:"loyalty",
+        g:"Help Garrus hunt his betrayer Sidonis. Requires talking to him repeatedly to trigger." },
+      { n:"Subject Zero", d:"Jack's loyalty", loc:"loyalty",
+        g:"Take Jack to Pragia to confront her past." },
+      { n:"Rite of Passage", d:"Grunt's loyalty", loc:"loyalty",
+        g:"Complete Grunt's krogan rite on Tuchanka. <span class='spoiler'>Wave three is a Thresher Maw on foot — bring heavy weapons and Mordin/Incinerate.</span> This is where Big Game Hunter unlocks." },
+      { n:"The Ardat-Yakshi", d:"Samara's loyalty", loc:"loyalty",
+        g:"Help Samara hunt her daughter Morinth. <span class='spoiler'>You can choose to side with Morinth instead, but that kills Samara — keep Samara for a clean run.</span>" },
+      { n:"Sins of the Father", d:"Thane's loyalty", loc:"loyalty",
+        g:"Help Thane reconnect with his son on the Citadel." },
+      { n:"Treason", d:"Tali's loyalty", loc:"loyalty",
+        g:"Defend Tali at her trial. <span class='hl'>Charm/Intimidate or evidence</span> keeps both her and her standing intact." },
+      { n:"Doppelganger", d:"Kasumi's loyalty (DLC)", loc:"loyalty",
+        g:"Help Kasumi recover her graybox from Donovan Hock." },
+      { n:"Ghost of the Father", d:"Jacob's loyalty", loc:"loyalty",
+        g:"Resolve Jacob's loyalty mission — his father's distress beacon." },
+      { n:"The Prodigal", d:"Miranda's loyalty", loc:"loyalty",
+        g:"Help Miranda protect her sister Oriana on Illium." },
+      { n:"Cat's in the Cradle", d:"Thane's loyalty (alt name)", loc:"loyalty",
+        g:"Alternate listing for Thane's loyalty in some editions — covered by Sins of the Father. Tick whichever your achievement list shows." },
+    ]},
+  { num:"P3", title:"Story & Suicide Mission",
+    note:"The main campaign beats, ending in the suicide mission. <em>No One Left Behind is the hardest achievement in the game</em> — plan for it.",
+    items:[
+      { n:"Very Illusive", d:"Return to active duty", loc:"story",
+        g:"Unmissable story achievement, unlocks early when you rejoin the fight under Cerberus." },
+      { n:"Ghost Ship", d:"Investigate the derelict Collector vessel", loc:"story",
+        g:"Unmissable story achievement for the derelict Reaper / Collector ship mission." },
+      { n:"Colony Defense", d:"Defend a human colony", loc:"story",
+        g:"Unmissable — the Horizon mission." },
+      { n:"Heart of Darkness", d:"Confront the Shadow Broker (DLC)", loc:"story",
+        g:"Complete Lair of the Shadow Broker (included in LE). Also rekindles a Liara romance if you want it." },
+      { n:"Digital Exorcist", d:"Shut down the rogue VI (Overlord DLC)", loc:"story",
+        g:"Complete Project Overlord (included in LE)." },
+      { n:"A House Divided", d:"Hack a geth collective", loc:"story",
+        g:"Story beat during the Legion / Reaper IFF arc." },
+      { n:"Suicide Mission", d:"Use the Omega 4 Relay", loc:"suicide",
+        g:"Trigger the final mission. <span class='hl'>Point of no return</span> — finish all loyalty missions, assignments, and ship upgrades BEFORE the Reaper IFF/relay, or crew die." },
+      { n:"Against All Odds", d:"Survive the suicide mission", loc:"suicide",
+        g:"Just survive — Shepard lives. Easier than No One Left Behind, which needs everyone." },
+      { n:"No One Left Behind", d:"Keep your ENTIRE team alive", t:"miss", loc:"suicide",
+        g:"<span class='hl'>The hardest achievement in ME2.</span> Everyone must survive. Requirements: <strong>(1)</strong> every squadmate loyal, <strong>(2)</strong> buy all three Normandy upgrades (Jacob's armor, Tali's shields, Garrus's gun — 15,000 each), <strong>(3)</strong> assign the right specialist to each suicide-mission role. <span class='spoiler'>Send a loyal tech (Tali/Legion/Kasumi) through the vents; a loyal biotic (Samara/Jack) for the barrier; a strong leader (Garrus/Miranda) for the second fireteam; escort the crew with a non-essential like Mordin.</span> Make a backup save before Reaper IFF." },
+      { n:"Mission Accomplished", d:"Finish the game", loc:"suicide",
+        g:"Complete ME2. Unmissable once you finish the suicide mission." },
+    ]},
+  { num:"P4", title:"Combat, Powers & Exploration",
+    note:"Counter-based and exploration achievements. Most tick up naturally on a thorough run.",
+    items:[
+      { n:"Incineration Specialist", d:"Incinerate the armor of 25 enemies", max:25, loc:"combat",
+        g:"Strip armor with Incinerate (or any armor-damaging power) 25 times. Mordin has Incinerate early." },
+      { n:"Overload Specialist", d:"Disrupt the shields of 25 enemies", max:25, loc:"combat",
+        g:"Fully deplete enemy shields 25 times with Overload. Many enemies are shielded — comes naturally." },
+      { n:"Warp Specialist", d:"Warp the barriers of 25 enemies", max:25, loc:"combat",
+        g:"Break biotic barriers 25 times with Warp. Bring Miranda or play Adept/Sentinel; great on the Collector ship." },
+      { n:"Head Hunter", d:"30 headshot kills on humanoids", max:30, loc:"combat",
+        g:"30 killing headshots on humanoids. Easiest with a sniper or heavy pistol." },
+      { n:"Merciless", d:"Make 20 enemies scream as they fall / burn", max:20, loc:"combat",
+        g:"Kill 20 enemies by knocking them off ledges or setting them on fire. Incinerate near edges does both jobs." },
+      { n:"Tactician", d:"Hit 20 targets with combined biotic powers", max:20, loc:"combat",
+        g:"<span class='hl'>Finicky.</span> The two powers must come from <strong>two separate casters</strong> (you + a squadmate) on the same target, 20 distinct targets. Bring two biotics and coordinate." },
+      { n:"Power Full", d:"Evolve any power", loc:"combat",
+        g:"Reach the rank-4 evolution choice on any power and pick one. Happens by mid-game as you level." },
+      { n:"Weapon Specialist", d:"Fully upgrade a weapon", loc:"explore",
+        g:"Research and apply all damage upgrades for one weapon type at the Normandy tech lab." },
+      { n:"Scientist", d:"Complete any research project", loc:"explore",
+        g:"Spend minerals on any research project in the Normandy laboratory." },
+      { n:"Scholar", d:"Unlock 15 new ME2 codex entries", loc:"explore",
+        g:"Accumulate 15 new codex entries — happens naturally as you explore and scan." },
+      { n:"Operative", d:"Complete a mission found by scanning a planet", loc:"explore",
+        g:"Scan an unexplored world to discover an anomaly, then complete the mission it reveals." },
+      { n:"Agent", d:"Complete 5 scan-discovered missions", loc:"explore",
+        g:"As Operative, but five times. Scan planets thoroughly while mining for resources." },
+      { n:"Galactic Explorer", d:"Visit 100% of planets in a cluster", loc:"explore",
+        g:"Fully explore every planet in any one unexplored cluster." },
+      { n:"Big Game Hunter", d:"Defeat the Thresher Maw", t:"miss", loc:"loyalty",
+        g:"<span class='spoiler'>Unlocked on wave three of Grunt's loyalty mission (Rite of Passage) — you fight a Thresher Maw on foot.</span> Missable if you skip or fail that mission. Bring heavy weapons." },
+    ]},
+  { num:"P5", title:"Cross-game & NG+",
+    note:"Counts toward the separate Legendary list. Insanity is widely considered easiest in ME2.",
+    items:[
+      { n:"Paramour (ME2)", d:"Establish a romance", t:"miss", loc:"story",
+        g:"Romance any squadmate to completion. <span class='hl'>Completing your love interest's loyalty mission is required to lock it in.</span> Feeds the cross-trilogy Paramour achievement." },
+      { n:"Insanity II", d:"Two games beaten on Insanity", t:"opt", loc:"endgame",
+        g:"Finish ME2 on Insanity (without changing difficulty) for the second of the cross-game Insanity tiers. ME2 Insanity is the most forgiving of the three." },
+    ]},
+];
+
+const PLANNER_ME2 = [
+  { key:"recruit", num:"01", title:"Recruit Everyone",
+    note:"Build the full roster first — recruits gate loyalty missions and the suicide-mission survival math." },
+  { key:"loyalty", num:"02", title:"Loyalty Missions",
+    note:"<em>Talk to squadmates after every mission</em> to trigger these. All are missable, and all are needed for No One Left Behind." },
+  { key:"story",   num:"03", title:"Story & DLC Beats",
+    note:"Main campaign plus the included DLC (Shadow Broker, Overlord, Kasumi)." },
+  { key:"combat",  num:"04", title:"Combat & Power Counters",
+    note:"Tick up naturally; watch the laggards (Tactician needs two casters)." },
+  { key:"explore", num:"05", title:"Scanning, Research & Exploration",
+    note:"Mine planets, run research, sweep clusters." },
+  { key:"suicide", num:"06", title:"Suicide Mission — Final Prep",
+    note:"<em>Do everything else first.</em> Loyalty + all 3 ship upgrades + correct role assignments = No One Left Behind." },
+  { key:"endgame", num:"07", title:"NG+ / Insanity",
+    note:"Cleanest on a geared second run." },
+];
+
+const ROUTE_ME2 = [
+  { num:"01", title:"Prologue & Freedom's Progress", body:"Play the opening; you'll return to active duty (Very Illusive) and start under Cerberus.", secures:["Very Illusive"] },
+  { num:"02", title:"Omega — recruit Mordin & Garrus", body:"Recruit the Professor and Archangel. <span class='hl'>Start talking to Garrus every chance you get</span> so Eye for an Eye opens later.", secures:["The Professor","The Archangel"] },
+  { num:"03", title:"Recruit the core team", body:"Purgatory for Jack, Korlus for Grunt, Illium for Samara and Thane. Grab Kasumi (DLC) too.", secures:["The Convict","The Krogan","The Justicar","The Assassin","Broke, Blind, and Bedlam"] },
+  { num:"04", title:"Horizon & story midpoint", body:"Defend the colony, investigate the derelict Reaper. Keep combat counters ticking.", secures:["Colony Defense","Ghost Ship"] },
+  { num:"05", title:"DLC sweep", body:"Lair of the Shadow Broker, Project Overlord, and the Kasumi vault. Great XP and story.", secures:["Heart of Darkness","Digital Exorcist","Doppelganger"] },
+  { num:"06", title:"Loyalty missions — ALL of them", body:"Work through every squadmate's loyalty mission. <span class='spoiler'>Grunt's Rite of Passage gives Big Game Hunter; keep Samara (not Morinth) loyal.</span> Lock in your romance here too.", secures:["The Cure","Eye for an Eye","Subject Zero","Rite of Passage","The Ardat-Yakshi","Sins of the Father","Treason","Ghost of the Father","The Prodigal","Big Game Hunter","Paramour (ME2)"] },
+  { num:"07", title:"Recruit Tali + Legion (IFF) — CAREFUL", body:"<span class='hl'>The Reaper IFF mission starts the endgame clock.</span> Do Tali's recruitment/loyalty and all assignments + the three ship upgrades FIRST. Make a backup save before IFF. Don't rush Legion's loyalty timing.", secures:["The Quarian","Friend or Foe"] },
+  { num:"08", title:"Ship upgrades + final assignments", body:"Buy all three Normandy upgrades (15,000 each) and clear remaining content. Verify every squadmate is loyal.", secures:["Weapon Specialist","Scientist"] },
+  { num:"09", title:"Suicide Mission", body:"<span class='spoiler'>Assign loyal specialists to each role: tech through vents, biotic on barrier, strong leader for fireteam two, escort crew with a spare.</span> Everyone loyal + upgrades + right roles = the whole team lives.", secures:["Suicide Mission","Against All Odds","No One Left Behind","Mission Accomplished"] },
+  { num:"10", title:"NG+ Insanity (optional)", body:"Replay on Insanity with your leveled Shepard for the cross-game trophy.", secures:["Insanity II"] },
+];
+
+/* ============ MASS EFFECT 3 ============ */
+const DATA_ME3 = [
+  { num:"P1", title:"Campaign — Story & Priority Missions",
+    note:"Most ME3 achievements unlock by completing missions. <em>Priority missions advance the plot and can close the window on side content</em> — always clear available side/N7 missions before starting a Priority mission.",
+    items:[
+      { n:"Driven", d:"Return to active duty", loc:"story",
+        g:"Unmissable opener — unlocks as you escape Earth and the Reaper invasion begins." },
+      { n:"Bringer of War", d:"Chase down an assassin (Mars)", loc:"story",
+        g:"Complete the Mars mission, which starts automatically right after Driven. You pursue a Cerberus assassin across the facility." },
+      { n:"Mobilizer", d:"Bring a veteran officer aboard (Palaven)", loc:"story",
+        g:"Complete Priority: Palaven. Unlocks galaxy exploration afterward (and the time-sensitive Grissom Academy mission for Liberator)." },
+      { n:"Pathfinder", d:"Explore a lost city (Tuchanka)", loc:"story",
+        g:"Complete Priority: Tuchanka. <span class='hl'>Priority mission</span> — finish Tuchanka-area side content first, since Tunnel Rat becomes missable once you start this." },
+      { n:"Party Crasher", d:"Sabotage a dreadnought (Geth Dreadnought)", loc:"story",
+        g:"Complete Priority: Geth Dreadnought. (Note: in LE the Citadel DLC party is separate fun content; this achievement is the dreadnought sabotage.)" },
+      { n:"World Shaker", d:"Destroy an orbital-dropped Atlas", loc:"combat",
+        g:"Destroy an Atlas mech that's dropped from orbit during a mission. Focus fire the cockpit; happens on specific set-pieces." },
+      { n:"Hard Target", d:"Call down an orbital strike (Rannoch)", loc:"story",
+        g:"Complete Priority: Rannoch — you target the Reaper with a laser for orbital strikes. <span class='spoiler'>Hold the trigger through the final slow-mo to land the killing strike.</span>" },
+      { n:"Arbiter", d:"Win a political stand-off (Rannoch)", loc:"story",
+        g:"<span class='spoiler'>Broker peace between the geth and quarians at Rannoch rather than letting one side wipe out the other — needs enough reputation and the right earlier choices.</span>" },
+      { n:"Last Witness", d:"Extract ancient technology (Thessia)", loc:"story",
+        g:"Complete Priority: Thessia, recovering Prothean tech from the temple." },
+      { n:"Executioner", d:"Defeat an old adversary", t:"miss", loc:"story",
+        g:"<span class='spoiler'>Defeat Kai Leng. Tied to story progression but flagged missable because outcome depends on prior choices/assets.</span>" },
+      { n:"Well Connected", d:"Send a warning across the galaxy", loc:"story",
+        g:"Story-related — unlocks during the comms/war-effort beats as you rally the galaxy." },
+      { n:"Lost and Found", d:"Dispatch 10 probes to retrieve assets", loc:"explore",
+        g:"After Mobilizer opens galaxy exploration, send 10 probes to recover people/resources from Reaper-controlled systems while scanning." },
+      { n:"Shopaholic", d:"Visit a store on the Citadel", loc:"explore",
+        g:"Visit any store in the single-player campaign. Trivial — do it on your first Citadel stop." },
+      { n:"A Personal Touch", d:"Modify a weapon", loc:"combat",
+        g:"Apply a weapon mod at a workbench or the Normandy requisitions terminal." },
+    ]},
+  { num:"P2", title:"DLC & Missable Side Missions",
+    note:"All included in Legendary Edition. <em>Several here are missable just by skipping the mission or starting a Priority mission too soon</em> — do them promptly.",
+    items:[
+      { n:"Under Pressure", d:"Uncover an ancient secret (Leviathan DLC)", loc:"story",
+        g:"Complete the Leviathan DLC. Start via 'Meet Dr. Bryson' on the galaxy map after Hackett's message. Unmissable once you play it through." },
+      { n:"Savior", d:"Free Omega from Cerberus (Omega DLC)", t:"miss", loc:"story",
+        g:"Complete the Omega DLC. <span class='hl'>Missable by simply not playing it</span> — start it from a message at your private terminal." },
+      { n:"Liberator", d:"Stop a Cerberus kidnapping (Grissom Academy)", t:"miss", loc:"story",
+        g:"Complete Grissom Academy: Emergency Evacuation. <span class='hl'>Time-sensitive</span> — it appears after Palaven and can be failed/lost if you delay, so do it as soon as Traynor flags it." },
+      { n:"Problem Solver", d:"Evacuate a scientific facility", t:"miss", loc:"story",
+        g:"Complete Arrae: Ex-Cerberus Scientists. Missable if you push the story past its window." },
+      { n:"Fact Finder", d:"Discover an enemy's monstrous origin", t:"miss", loc:"story",
+        g:"<span class='spoiler'>Complete the side mission that reveals how the Reapers make their troops (the Ardat-Yakshi monastery / related investigation).</span> Don't skip the related side content." },
+      { n:"Tunnel Rat", d:"Survive the swarm", t:"miss", loc:"story",
+        g:"<span class='spoiler'>Complete Attican Traverse: Krogan Team — you survive Reaper-infused rachni in the tunnels.</span> <span class='hl'>Becomes missable once you start Priority: Tuchanka</span>, so do it first." },
+      { n:"Saboteur", d:"Disable a group of fighter squadrons", t:"miss", loc:"story",
+        g:"<span class='spoiler'>Complete the Geth Fighter Squadrons N7 mission.</span> <span class='hl'>Becomes missable once you start Priority: Rannoch</span> — clear it beforehand." },
+    ]},
+  { num:"P3", title:"Combat & Power Skill",
+    note:"Counter and skill achievements. <span class='hl'>ME3 quirk:</span> power achievements count <em>only your own casts</em> — squadmate powers do NOT count here (unlike ME1/ME2).",
+    items:[
+      { n:"Combined Arms", d:"Perform power combos", loc:"combat",
+        g:"Detonate power combinations (prime with one power, detonate with another). You can solo these by chaining your own powers — squad casts won't count." },
+      { n:"Focused", d:"Evolve a power to its final rank", loc:"combat",
+        g:"Take any power to rank 6 and choose an evolution." },
+      { n:"Untouchable", d:"Escape a deadly situation", loc:"combat",
+        g:"Survive a scripted near-death moment; unlocks naturally through the campaign." },
+      { n:"Shield Breaker", d:"Disrupt 100 shields/barriers/armor", max:100, loc:"combat",
+        g:"Use powers/weapons to break enemy defences 100 times. Comes naturally vs heavily-shielded Cerberus — equip anti-shield gear to speed it up." },
+      { n:"Sky High", d:"Launch enemies with biotics", loc:"combat",
+        g:"Throw/launch enemies a great distance or height with a biotic power. Pull + Throw works well." },
+      { n:"Pyromaniac", d:"Set 100 enemies on fire", max:100, loc:"combat",
+        g:"Set 100 enemies alight. <span class='hl'>Equip Incendiary Ammo</span> from early on and it racks up across the whole campaign." },
+      { n:"Eye of the Hurricane", d:"Kill enemies with headshots in a row", loc:"combat",
+        g:"Chain consecutive headshot kills. Sniper rifle plus a marksman/stability bonus makes it manageable." },
+      { n:"Mail Slot", d:"Kill 10 guardians through their shield slot", max:10, loc:"combat",
+        g:"Kill 10 Cerberus Guardians with headshots through the gap in their raised shields as they advance. A sniper rifle threads the slot most reliably." },
+      { n:"Hijacker", d:"Hijack an Atlas mech", t:"miss", loc:"combat",
+        g:"<span class='hl'>Easiest at Grissom Academy</span> — near the end there's an empty Atlas you just walk up to and enter. Otherwise shoot out a piloted Atlas's orange cockpit glass, kill the pilot, then board before it's destroyed." },
+      { n:"Giant Killer", d:"Defeat a brute / heavy enemy", loc:"combat",
+        g:"Kill a Brute (or comparable heavy). Happens naturally in Cerberus and Reaper fights." },
+      { n:"Always Prepared", d:"Use the Normandy's war room / resources", loc:"explore",
+        g:"Engage with the Normandy's systems (war room / requisitions) as intended during the campaign." },
+    ]},
+  { num:"P4", title:"Romance, Endgame & NG+",
+    note:"The headline completion achievement plus the items needing a short second run.",
+    items:[
+      { n:"Paramour (ME3)", d:"Establish or rekindle a romance", t:"miss", loc:"story",
+        g:"Romance a squadmate (new or carried from ME1/ME2). Feeds the cross-trilogy Paramour. Talk to your interest at every Normandy return and follow their arc to the end." },
+      { n:"Patriot", d:"Make the final assault (Priority: Earth)", loc:"story",
+        g:"Reach and complete the final push on Earth. Unmissable story achievement late in the campaign." },
+      { n:"Legend", d:"Finish the game", loc:"story",
+        g:"Complete ME3's campaign on any difficulty. Unmissable once you reach the ending." },
+      { n:"Master and Commander", d:"Deliver most Galaxy at War assets", t:"miss", loc:"story",
+        g:"<span class='hl'>The headline achievement.</span> Needs a high Effective Military Strength (~4000+), meaning <strong>do almost everything</strong>: all side/N7 missions, all DLC, scan systems for assets, and make optimal choices (cure the genophage, broker geth-quarian peace, keep prior squadmates alive). Pushing Galactic Readiness toward 100% helps if your raw EMS is short. Clearing this sweeps up most other missables." },
+      { n:"The One and Only", d:"Trilogy completion marker", loc:"endgame",
+        g:"Late-game collection/completion milestone tied to finishing the trilogy content; unlocks alongside the endgame achievements." },
+      { n:"Gunsmith", d:"Get any weapon to Level 10", t:"opt", loc:"endgame",
+        g:"<span class='hl'>Can't finish in one playthrough</span> — weapon levels cap part-way the first time. On a short <strong>NG+ run (a couple of hours to Mars)</strong> the upgrade terminal lets you push a weapon to Level 10. The one reason ME3 needs ~1.5 playthroughs." },
+      { n:"Insanity III", d:"All three games beaten on Insanity", t:"opt", loc:"endgame",
+        g:"Finish ME3 on Insanity (no difficulty change after leaving Earth) to complete the cross-game Insanity set. Remember squadmate power casts don't count toward ME3 power achievements. Best on NG+ with a leveled Shepard." },
+    ]},
+];
+
+const PLANNER_ME3 = [
+  { key:"story",   num:"01", title:"Campaign, Priority & DLC Missions",
+    note:"Main + Priority missions and the included DLC (Leviathan, Omega, Citadel). <em>Clear side content before each Priority mission</em> — some achievements lock otherwise." },
+  { key:"combat",  num:"02", title:"Combat & Power Counters",
+    note:"<em>Your own casts only</em> count toward power achievements in ME3. Equip Incendiary Ammo early for Pyromaniac." },
+  { key:"explore", num:"03", title:"Scanning, Probes & Requisitions",
+    note:"Scan systems for war assets, send probes (Lost and Found), visit stores, use the Normandy." },
+  { key:"endgame", num:"04", title:"Endgame & NG+",
+    note:"Master and Commander needs near-total completion; Gunsmith needs a short NG+ to Mars." },
+];
+
+const ROUTE_ME3 = [
+  { num:"01", title:"Earth & Mars — opening", body:"Escape Earth (Driven), then the Mars mission auto-starts and you chase the assassin (Bringer of War). Visit a Citadel store for Shopaholic when you can.", secures:["Driven","Bringer of War","Shopaholic"] },
+  { num:"02", title:"Palaven — and grab Liberator NOW", body:"Complete Priority: Palaven (Mobilizer), which opens galaxy exploration. <span class='hl'>Do Grissom Academy immediately</span> — Liberator is time-sensitive and can be failed. Equip Incendiary Ammo to start Pyromaniac.", secures:["Mobilizer","Liberator","A Personal Touch"] },
+  { num:"03", title:"DLC sweep — Leviathan, Omega, Citadel", body:"Play all three (all in LE). <span class='hl'>Savior (Omega) is missable just by skipping it.</span>", secures:["Under Pressure","Savior","Party Crasher"] },
+  { num:"04", title:"Pre-Tuchanka side missions", body:"<span class='hl'>Before Priority: Tuchanka</span>, finish the Krogan Team mission for Tunnel Rat — it locks once Tuchanka starts. Then do Tuchanka (Pathfinder).", secures:["Tunnel Rat","Pathfinder"] },
+  { num:"05", title:"Geth Dreadnought & pre-Rannoch", body:"Sabotage the dreadnought, then <span class='hl'>do the Geth Fighter Squadrons mission for Saboteur before Priority: Rannoch</span>. Rannoch gives Hard Target and, with the right choices, Arbiter.", secures:["Saboteur","Hard Target","Arbiter","World Shaker","Hijacker"] },
+  { num:"06", title:"Thessia & remaining side content", body:"Complete Thessia (Last Witness) and clear the missable side missions (Problem Solver, Fact Finder). Lock in your romance. Send probes for Lost and Found.", secures:["Last Witness","Problem Solver","Fact Finder","Lost and Found","Paramour (ME3)"] },
+  { num:"07", title:"Maximise war assets", body:"Before the finale, push Effective Military Strength as high as possible (~4000+) — every asset, scan, and optimal choice counts for Master and Commander. Raise Galactic Readiness if short.", secures:["Well Connected","Executioner"] },
+  { num:"08", title:"Finale — Priority: Earth", body:"Make the final assault (Patriot) and complete the game (Legend); with enough assets, Master and Commander pops as you commit the fleets.", secures:["Patriot","Legend","Master and Commander","The One and Only"] },
+  { num:"09", title:"NG+ to Mars — Gunsmith", body:"<span class='hl'>Start New Game+ and play a couple of hours to Mars.</span> At the upgrade terminal, level any weapon to 10 for Gunsmith — the one item you can't get first time.", secures:["Gunsmith"] },
+  { num:"10", title:"Insanity (across the trilogy)", body:"Finishing ME3 on Insanity completes the cross-game set. Squadmate power casts don't count here, so plan your own power use.", secures:["Insanity III"] },
+];
+
+/* ============ GAME REGISTRY ============ */
+const GAMES = {
+  me1: { label:"ME1", full:"1", data:DATA_ME1, planner:PLANNER_ME1, route:ROUTE_ME1,
+         priority:["Protheans codex entry","Charismatic / max alignment","Paramour","Sentinel Ally","Krogan Ally","Scan Keepers (Rich / Archivist)","All assignments + planet exploration"] },
+  me2: { label:"ME2", full:"2", data:DATA_ME2, planner:PLANNER_ME2, route:ROUTE_ME2,
+         priority:["No One Left Behind","Big Game Hunter","The Cure","Eye for an Eye","Rite of Passage","Paramour (ME2)"] },
+  me3: { label:"ME3", full:"3", data:DATA_ME3, planner:PLANNER_ME3, route:ROUTE_ME3,
+         priority:["Master and Commander","Savior","Hijacker","Problem Solver","Fact Finder","Tunnel Rat","Saboteur","Liberator","Paramour (ME3)"] },
+};
+let CUR = "me1";          // current game key
+let G = GAMES[CUR];       // shorthand to current game's data
+
+const KEY = "me1_checklist_v5";
+function blankGame(){ return { done:{}, count:{}, notes:{} }; }
+let state = { games:{ me1:blankGame(), me2:blankGame(), me3:blankGame() }, spoilers:false, view:"phase", cur:"me1" };
+// accessors for the CURRENT game's progress
+function gp(){ return state.games[CUR]; }
+function DN(id){ return gp().done; }
+function CT(){ return gp().count; }
+function NT(){ return gp().notes; }
+const phasesEl = document.getElementById("phases");
+
+// flatten for stable IDs (phase index . item index) — ID stays constant regardless of view
+function eachItem(cb){ G.data.forEach((ph,pi)=>ph.items.forEach((it,ii)=>cb(it,`${pi}_${ii}`,ph))); }
+
+// name -> {it,id} so the route view can reuse the real checkboxes
+let BY_NAME = {};
+function rebuildByName(){ BY_NAME = {}; eachItem((it,id)=>{ BY_NAME[it.n] = {it,id}; }); }
+rebuildByName();
+
+// Storage adapter: use Claude's artifact storage if present, otherwise
+// fall back to the browser's localStorage (works when the file is opened directly).
+const store = {
+  async get(k){
+    if (window.storage && typeof window.storage.get === "function"){
+      try { return await window.storage.get(k); } catch(e){ /* fall through */ }
+    }
+    try { const v = localStorage.getItem(k); return v ? { value:v } : null; }
+    catch(e){ return null; }
+  },
+  async set(k,v){
+    if (window.storage && typeof window.storage.set === "function"){
+      try { return await window.storage.set(k,v); } catch(e){ /* fall through */ }
+    }
+    try { localStorage.setItem(k,v); } catch(e){}
+  }
+};
+
+function applyGame(){
+  CUR = state.cur || "me1";
+  G = GAMES[CUR];
+  rebuildByName();
+  // header + game tabs reflect current game
+  document.getElementById("gameTitleNum").textContent = G.full;
+  document.querySelectorAll("#gameSeg button").forEach(b=>b.classList.toggle("active", b.dataset.game===CUR));
+}
+
+async function load(){
+  try {
+    const r = await store.get(KEY);
+    if (r && r.value){
+      const saved = JSON.parse(r.value);
+      // merge while preserving the per-game structure
+      if (saved.games) state.games = Object.assign(state.games, saved.games);
+      if (typeof saved.spoilers==="boolean") state.spoilers = saved.spoilers;
+      if (saved.view) state.view = saved.view;
+      if (saved.cur) state.cur = saved.cur;
+      // migrate a v4 flat save (done/count/notes at top level) into me1
+      if (saved.done || saved.count || saved.notes){
+        state.games.me1 = { done:saved.done||{}, count:saved.count||{}, notes:saved.notes||{} };
+      }
+    }
+  } catch(e){}
+  applyGame();
+  document.getElementById("spoilerToggle").checked = !!state.spoilers;
+  document.body.classList.toggle("show-spoilers", !!state.spoilers);
+  document.querySelectorAll("#viewSeg button").forEach(b=>b.classList.toggle("active", b.dataset.view===state.view));
+  render();
+}
+async function save(){
+  try { await store.set(KEY, JSON.stringify(state)); } catch(e){}
+}
+
+function isDone(it,id){
+  if (it.max) return (CT()[id]||0) >= it.max;
+  return !!DN()[id];
+}
+
+function buildItemLi(it, id){
+  const li = document.createElement("li");
+  li.className = "item";
+  if (isDone(it,id)) li.classList.add("done");
+  const tag = it.t ? `<span class="tag ${it.t}">${it.t==="miss"?"Missable":"Optional"}</span>` : "";
+  const hasNote = NT()[id] && NT()[id].trim();
+
+  const row = document.createElement("div");
+  row.className = "item-row";
+
+  // counter OR checkbox
+  let leftControl;
+  if (it.max){
+    const cur = CT()[id]||0;
+    row.innerHTML = `
+      <div class="counter">
+        <button class="cdn">−</button>
+        <span class="cval ${cur>=it.max?'full':''}">${cur} / ${it.max}</span>
+        <button class="cup">+</button>
+      </div>
+      <div class="task">
+        <div class="task-name">${it.n}${tag}</div>
+        <div class="task-desc">${it.d}</div>
+      </div>
+      <div class="btns-right">
+        <button class="note-btn ${hasNote?'has-note':''}">Note</button>
+        <button class="guide-btn">Guide</button>
+      </div>`;
+    const cval = row.querySelector(".cval");
+    const upd = ()=>{
+      const v = CT()[id]||0;
+      cval.textContent = `${v} / ${it.max}`;
+      cval.classList.toggle("full", v>=it.max);
+      li.classList.toggle("done", v>=it.max);
+      save(); refreshMeta(); refreshPriority();
+    };
+    row.querySelector(".cup").addEventListener("click",(e)=>{ e.stopPropagation();
+      CT()[id]=Math.min(it.max,(CT()[id]||0)+1); upd(); });
+    row.querySelector(".cdn").addEventListener("click",(e)=>{ e.stopPropagation();
+      CT()[id]=Math.max(0,(CT()[id]||0)-1); upd(); });
+  } else {
+    row.innerHTML = `
+      <div class="checkzone">
+        <div class="box"></div>
+        <div class="task">
+          <div class="task-name">${it.n}${tag}</div>
+          <div class="task-desc">${it.d}</div>
+        </div>
+      </div>
+      <div class="btns-right">
+        <button class="note-btn ${hasNote?'has-note':''}">Note</button>
+        <button class="guide-btn">Guide</button>
+      </div>`;
+    row.querySelector(".checkzone").addEventListener("click",()=>{
+      DN()[id]=!DN()[id];
+      li.classList.toggle("done", DN()[id]);
+      save(); refreshMeta(); refreshPriority();
+    });
+  }
+
+  // guide
+  const guide = document.createElement("div");
+  guide.className = "guide"; guide.innerHTML = it.g;
+  const gbtn = row.querySelector(".guide-btn");
+  gbtn.addEventListener("click",(e)=>{ e.stopPropagation();
+    guide.classList.toggle("show"); gbtn.classList.toggle("open");
+    gbtn.textContent = guide.classList.contains("show")?"Hide":"Guide"; });
+
+  // note
+  const noteArea = document.createElement("div");
+  noteArea.className = "note-area";
+  const ta = document.createElement("textarea");
+  ta.placeholder = "Your notes — e.g. 'saved at C-Sec terminal', 'Wrex done, Tali needs 2'…";
+  ta.value = NT()[id]||"";
+  ta.addEventListener("input",()=>{ NT()[id]=ta.value; save(); });
+  ta.addEventListener("blur",()=>{
+    nbtn.classList.toggle("has-note", ta.value.trim()!==""); });
+  noteArea.appendChild(ta);
+  const nbtn = row.querySelector(".note-btn");
+  nbtn.addEventListener("click",(e)=>{ e.stopPropagation();
+    noteArea.classList.toggle("show"); nbtn.classList.toggle("open");
+    if (noteArea.classList.contains("show")) ta.focus(); });
+
+  li.appendChild(row); li.appendChild(guide); li.appendChild(noteArea);
+  return li;
+}
+
+function makeSection(num, title, note, items, isPlanner){
+  const section = document.createElement("section");
+  section.className = "phase" + (isPlanner?" planner-group":"");
+  let dn=0; items.forEach(({it,id})=>{ if(isDone(it,id)) dn++; });
+  const head = document.createElement("div");
+  head.className="phase-head";
+  head.innerHTML = `<span class="phase-num">${num}</span><span class="phase-title">${title}</span><span class="phase-count">${dn}/${items.length}</span>`;
+  const body = document.createElement("div"); body.className="phase-body";
+  const nt = document.createElement("div"); nt.className="phase-note"; nt.innerHTML=note; body.appendChild(nt);
+  const ul = document.createElement("ul");
+  items.forEach(({it,id})=> ul.appendChild(buildItemLi(it,id)));
+  body.appendChild(ul); section.appendChild(head); section.appendChild(body);
+  head.addEventListener("click",()=>{ body.style.display = body.style.display==="none"?"":"none"; });
+  return section;
+}
+
+function render(){
+  phasesEl.innerHTML="";
+  if (state.view==="phase"){
+    G.data.forEach((ph,pi)=>{
+      const items = ph.items.map((it,ii)=>({it,id:`${pi}_${ii}`}));
+      phasesEl.appendChild(makeSection(ph.num, ph.title, ph.note, items, false));
+    });
+  } else if (state.view==="planner"){
+    G.planner.forEach(grp=>{
+      const items=[];
+      eachItem((it,id)=>{ if(it.loc===grp.key) items.push({it,id}); });
+      if (items.length) phasesEl.appendChild(makeSection(grp.num, grp.title, grp.note, items, true));
+    });
+  } else {
+    renderRoute();
+  }
+  refreshMeta(); refreshPriority();
+}
+
+function renderRoute(){
+  G.route.forEach(step=>{
+    const items = step.secures.map(n=>BY_NAME[n]).filter(Boolean);
+    phasesEl.appendChild(makeSection(step.num, step.title, step.body, items, true));
+  });
+}
+
+function refreshMeta(){
+  let total=0, done=0;
+  eachItem((it,id)=>{ total++; if(isDone(it,id)) done++; });
+  const pct = total?Math.round(done/total*100):0;
+  document.getElementById("pct").textContent = pct+"%";
+  document.getElementById("barFill").style.width = pct+"%";
+  document.getElementById("statusText").textContent = `${done} / ${total} OBJECTIVES LOGGED`;
+  document.getElementById("banner").classList.toggle("show", done===total && total>0);
+  // trilogy-wide total across all three games
+  let tDone=0, tTotal=0; const per={};
+  for (const key of ["me1","me2","me3"]){
+    const gm=GAMES[key], bucket=state.games[key]||blankGame();
+    let d=0,t=0;
+    gm.data.forEach((ph,pi)=>ph.items.forEach((it,ii)=>{
+      const id=`${pi}_${ii}`; t++;
+      const done2 = it.max ? (bucket.count[id]||0)>=it.max : !!bucket.done[id];
+      if(done2) d++;
+    }));
+    per[key]={d,t}; tDone+=d; tTotal+=t;
+  }
+  const tt = document.getElementById("trilogyTotal");
+  if (tt){
+    const pctAll = tTotal?Math.round(tDone/tTotal*100):0;
+    tt.innerHTML = `TRILOGY <b>${tDone}/${tTotal}</b> (${pctAll}%)  ·  ` +
+      `ME1 <span class="${per.me1.d===per.me1.t?'seg-done':''}">${per.me1.d}/${per.me1.t}</span>  ` +
+      `ME2 <span class="${per.me2.d===per.me2.t?'seg-done':''}">${per.me2.d}/${per.me2.t}</span>  ` +
+      `ME3 <span class="${per.me3.d===per.me3.t?'seg-done':''}">${per.me3.d}/${per.me3.t}</span>`;
+  }
+  // update visible phase counts live
+  document.querySelectorAll(".phase").forEach(sec=>{
+    const c = sec.querySelector(".phase-count");
+    const lis = sec.querySelectorAll("li.item");
+    let d=0; lis.forEach(li=>{ if(li.classList.contains("done")) d++; });
+    if(c) c.textContent = `${d}/${lis.length}`;
+  });
+}
+
+// Priority strip: surface uncleared missables, most time-sensitive first
+function priorityOrder(){ return G.priority || []; }
+function refreshPriority(){
+  const strip = document.getElementById("priorityStrip");
+  const open=[];
+  eachItem((it,id)=>{
+    if (it.t==="miss" || priorityOrder().includes(it.n)){
+      if(!isDone(it,id)) open.push(it.n);
+    }
+  });
+  if (!open.length){ strip.innerHTML=""; return; }
+  open.sort((a,b)=>{
+    const PO=priorityOrder(); const ia=PO.indexOf(a), ib=PO.indexOf(b);
+    return (ia<0?99:ia)-(ib<0?99:ib);
+  });
+  const top = open.slice(0,4);
+  strip.innerHTML = `<div class="priority-inner">
+    <div class="priority-title">Don't lose these — missable / time-sensitive</div>
+    ${top.map(n=>`<div class="priority-item">${n}</div>`).join("")}
+  </div>`;
+}
+
+/* ---- controls ---- */
+document.getElementById("spoilerToggle").addEventListener("change",(e)=>{
+  state.spoilers=e.target.checked;
+  document.body.classList.toggle("show-spoilers", state.spoilers);
+  save();
+});
+document.querySelectorAll("#gameSeg button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    state.cur=b.dataset.game;
+    applyGame();
+    // collapse-state resets cleanly on game change; re-render fresh
+    save(); render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+});
+document.querySelectorAll("#viewSeg button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    state.view=b.dataset.view;
+    document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("active",x===b));
+    save(); render();
+  });
+});
+document.getElementById("reset").addEventListener("click",()=>{
+  if(confirm(`Wipe ${G.label} progress, counters, and notes? (Other games are kept.)`)){
+    state.games[CUR]=blankGame();
+    save(); render();
+  }
+});
+document.getElementById("expandAll").addEventListener("click",()=>
+  document.querySelectorAll(".phase-body").forEach(b=>b.style.display=""));
+document.getElementById("collapseAll").addEventListener("click",()=>
+  document.querySelectorAll(".phase-body").forEach(b=>b.style.display="none"));
+
+/* ---- export / import ---- */
+const modalBg=document.getElementById("modalBg");
+const exportArea=document.getElementById("exportArea");
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  // full trilogy summary + machine code (all three games)
+  const blocks=[];
+  ["me1","me2","me3"].forEach(key=>{
+    const gm=GAMES[key], bucket=state.games[key]||blankGame();
+    let done=0,total=0; const lines=[];
+    gm.data.forEach((ph,pi)=>ph.items.forEach((it,ii)=>{
+      const id=`${pi}_${ii}`; total++;
+      const d = it.max ? (bucket.count[id]||0)>=it.max : !!bucket.done[id];
+      if(d)done++;
+      const c = it.max ? ` (${bucket.count[id]||0}/${it.max})` : "";
+      const nt = bucket.notes[id]&&bucket.notes[id].trim() ? `  — ${bucket.notes[id].trim()}` : "";
+      lines.push(`[${d?"x":" "}] ${it.n}${c}${nt}`);
+    }));
+    blocks.push(`MASS EFFECT ${gm.full} — ${done}/${total} (${total?Math.round(done/total*100):0}%)\n`+
+      `${"-".repeat(40)}\n`+lines.join("\n"));
+  });
+  const summary = `MASS EFFECT LEGENDARY EDITION — 100% LOG\n${"=".repeat(40)}\n\n` +
+    blocks.join("\n\n") +
+    `\n\n--- RESTORE CODE (paste to import) ---\n` + btoa(JSON.stringify(state));
+  exportArea.value = summary;
+  modalBg.classList.add("show");
+});
+document.getElementById("copyBtn").addEventListener("click",()=>{
+  exportArea.select();
+  navigator.clipboard?.writeText(exportArea.value).then(
+    ()=>{ document.getElementById("copyBtn").textContent="Copied!"; setTimeout(()=>document.getElementById("copyBtn").textContent="Copy",1500); }
+  ).catch(()=>{});
+});
+document.getElementById("importBtn").addEventListener("click",()=>{
+  const m = exportArea.value.match(/RESTORE CODE \(paste to import\) ---\n([A-Za-z0-9+/=]+)/);
+  const code = m ? m[1] : exportArea.value.trim();
+  try {
+    const obj = JSON.parse(atob(code));
+    Object.assign(state, obj);
+    save(); load(); modalBg.classList.remove("show");
+  } catch(e){ alert("Couldn't read that code. Paste the full restore code or the whole export text."); }
+});
+document.getElementById("closeModal").addEventListener("click",()=>modalBg.classList.remove("show"));
+modalBg.addEventListener("click",(e)=>{ if(e.target===modalBg) modalBg.classList.remove("show"); });
+
+load();
+</script>
+</body>
+</html>
