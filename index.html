@@ -213,12 +213,35 @@
   .guide.show { display:block; }
   .guide strong { color:var(--ice); font-weight:600; }
   .guide .hl { color:var(--amber); }
-  .guide .spoiler, .phase-note .spoiler {
+  .build-intro { border-left-color:var(--amber); }
+  .build-intro .phase-num { color:var(--amber); border-color:var(--amber); }
+  .build-intro-body { padding:14px 22px 18px; font-size:14.5px; line-height:1.6; color:var(--text); }
+  .build-section { border-left-color:var(--ice); }
+  .build-bullet { color:var(--ice) !important; border-color:var(--ice) !important; }
+  .build-h { font-size:15px !important; }
+  .build-body { padding:14px 22px 18px; font-size:14.5px; line-height:1.62; color:var(--text); }
+  .build-body b { color:var(--ice); font-weight:600; }
+  .build-body i { color:var(--text-dim); font-style:normal; }
+  .build-body ol.blist { margin:6px 0 4px; padding-left:0; counter-reset:step; list-style:none; }
+  .build-body ol.blist li {
+    position:relative; padding:7px 0 7px 34px; margin:0;
+    border-bottom:1px solid rgba(29,37,48,0.6); line-height:1.5;
+  }
+  .build-body ol.blist li:last-child { border-bottom:none; }
+  .build-body ol.blist li::before {
+    counter-increment:step; content:counter(step);
+    position:absolute; left:0; top:7px;
+    width:22px; height:22px; border:1px solid var(--ice); color:var(--ice);
+    border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .guide .spoiler, .phase-note .spoiler, .build-body .spoiler {
     background:var(--text-dim); color:var(--text-dim); border-radius:2px;
     padding:0 2px; cursor:default; transition:0.2s; user-select:none;
   }
   body.show-spoilers .guide .spoiler,
-  body.show-spoilers .phase-note .spoiler { background:rgba(214,58,47,0.12); color:var(--n7-red-bright); }
+  body.show-spoilers .phase-note .spoiler,
+  body.show-spoilers .build-body .spoiler { background:rgba(214,58,47,0.12); color:var(--n7-red-bright); }
 
   .note-area {
     display:none; margin:0 10px 8px 41px;
@@ -301,6 +324,7 @@
         <button data-view="phase" class="active">By Phase</button>
         <button data-view="planner">Session Planner</button>
         <button data-view="route">Route</button>
+        <button data-view="build">Build</button>
       </div>
     </div>
     <div class="toggle-row">
@@ -781,13 +805,98 @@ const ROUTE_ME3 = [
   { num:"10", title:"Insanity (across the trilogy)", body:"Finishing ME3 on Insanity completes the cross-game set. Squadmate power casts don't count here, so plan your own power use.", secures:["Insanity III"] },
 ];
 
+/* ============ SOLDIER BUILD GUIDES (DETAILED) ============ */
+const BUILD_ME1 = {
+  intro:"Soldier is the safest ME1 Insanity class: heavy armour, highest health, every weapon. Your squad can't revive you, so durability wins — and ME1's power system is clunky enough that you'll mostly shoot things dead. Commando specialisation for damage; Shock Trooper if you'd rather tank. There's no level cap, so you'll comfortably max the core lines.",
+  sections:[
+    { h:"Leveling order (do these in sequence)",
+      html:"<ol class='blist'>"+
+        "<li><b>Assault Training &rarr; 3</b> first. Unlocks <b>Adrenaline Burst</b>, the ability that resets all cooldowns &mdash; the engine of the build.</li>"+
+        "<li><b>Assault Rifles &rarr; 8</b>. Unlocks <b>Advanced Overkill</b> (your damage spike) along the way. Your primary weapon line.</li>"+
+        "<li><b>Sniper Rifles</b>, leveled in tandem with Assault Rifles toward rank 12, to pick off tough targets before they close.</li>"+
+        "<li><b>Assault Training &rarr; 12</b> for <b>Master Adrenaline Burst</b>. Mandatory on Insanity.</li>"+
+        "<li><b>Fitness</b> to unlock <b>Immunity</b> (huge damage absorb) and grow health.</li>"+
+        "<li><b>Combat Armor</b> up to unlock <b>Heavy Armor</b> &mdash; the big durability jump.</li>"+
+        "<li><b>Specialization</b> (after the Citadel side quest): <b>Commando</b> for +weapon damage and &minus;25% cooldown on Immunity/Assassination/Marksman. (Shock Trooper instead for max tank: more HP + faster Immunity/Adrenaline Burst.)</li>"+
+        "<li>Leftovers &rarr; finish Combat Armor, then First Aid / Pistols.</li></ol>" },
+    { h:"Charm / Intimidate \u2014 spend as you go",
+      html:"<span class='hl'>Whenever a point is available, feed your chosen morality track.</span> High <b>Charm</b> improves first aid and power cooldowns; high <b>Intimidate</b> boosts power/weapon damage. This is also your <i>Charismatic</i> achievement setup &mdash; pick one and commit, don't split." },
+    { h:"End-game shape (~level 50)",
+      html:"Assault Training 12 &middot; Assault Rifles 12 &middot; Sniper Rifles 12 &middot; Fitness (Immunity maxed) &middot; Combat Armor (Heavy Armor) &middot; Commando 12 &middot; spare in First Aid/Pistols. With <b>Colossus heavy armour + Master Immunity</b> incoming damage drops to a trickle &mdash; that stacking is what makes Soldier near-unkillable on Insanity." },
+    { h:"Weapons & gear",
+      html:"Assault rifle main, sniper for range. Once you earn <b>Rich</b>, buy top-tier Spectre weapons (HMWA master gear) &mdash; they trivialise headshots and kills, feeding Head Hunter and the weapon-kill achievements. End-game armour: Predator/Colossus heavy with damage-protection mods." },
+    { h:"Squad",
+      html:"Cover the defences your gun doesn't instantly chew: a tech user (<b>Garrus/Tali</b>) for shields, a biotic (<b>Liara</b>) for Lift/Singularity/Warp to strip and crowd-control. Let squadmates soak aggro while you reposition and shoot." },
+    { h:"Set up the trilogy here",
+      html:"<span class='hl'>Earn Rich in ME1</span> &mdash; bigger credit bonus carried into ME2's import. Finish at as high a level as you reasonably can; import bonuses (ore, credits, Paragon/Renegade) scale to ME1 level." },
+  ]
+};
+
+const BUILD_ME2 = {
+  intro:"ME2 is the hardest Insanity of the three \u2014 enemies are pinpoint-accurate and almost everything carries a secondary defence (barrier/armour/shield). Soldier is the consensus answer: guns work on every defence type 100% of the time, where biotics/tech bounce off barriers. Adrenaline Rush is the best ability in the game; use it on every cooldown. No bonus power is recommended \u2014 anything with its own cooldown competes with Rush.",
+  sections:[
+    { h:"Leveling order (do these in sequence)",
+      html:"<ol class='blist'>"+
+        "<li><b>Adrenaline Rush &rarr; 4</b> ASAP, taking <b>Heightened Adrenaline Rush</b> at rank 4. Slows time, huge damage, faster reloads &mdash; your Insanity lifeline.</li>"+
+        "<li><b>Warp Ammo &rarr; 4</b>. The key ammo power: shreds barriers <i>and</i> armour &mdash; exactly what Collectors stack. Default ammo on Collector missions.</li>"+
+        "<li><b>Combat Mastery &rarr; 4</b>, choosing <b>Shock Trooper</b> for health/durability (or Commando for raw damage).</li>"+
+        "<li><b>Disruptor Ammo &rarr; 3-4</b> for synthetic-heavy missions (mechs, geth, drones).</li>"+
+        "<li><b>Incendiary Ammo &rarr; 3-4</b> for organics/armour (sets fires too).</li>"+
+        "<li>Finish maxing <b>Adrenaline Rush</b>, then <b>Warp Ammo</b>, then <b>Combat Mastery &rarr; 6</b>.</li>"+
+        "<li><b>Concussive Shot</b> only if you want light CC &mdash; low priority; ~6s cooldown loses damage vs Rush's ~3s.</li></ol>"+
+        "Skip the <i>squad</i> ammo evolutions &mdash; you out-damage allies solo." },
+    { h:"Bonus power",
+      html:"<span class='hl'>None recommended.</span> Adrenaline Rush wants to be up constantly; a second active power with its own cooldown just gets in the way. Optimal play is no bonus power." },
+    { h:"Weapons",
+      html:"<b>M-96 Mattock</b> (semi-auto AR) is the classic &mdash; high accuracy, perfect with Rush. At the Collector Ship heavy-weapon-training unlock, take the <b>Widow</b> over the Claymore/Revenant. Mattock + Widow covers all ranges. Research: assault-rifle damage, then damage-protection/heavy skin weave. The <b>Cain (nuke)</b> heavy weapon trivialises the final boss even on Insanity." },
+    { h:"Squad \u2014 they strip, you kill",
+      html:"<span class='hl'>Best pairing: Miranda + Garrus</span> (rounded coverage) or <b>Miranda + Grunt</b> (Grunt draws aggro so you regen between Rush bursts). Miranda hits every weakness &mdash; Warp for barriers/armour, Overload for shields &mdash; and passively buffs your weapon damage. Use squad purely to remove protection, then finish with your gun." },
+    { h:"Tactics",
+      html:"Strip then kill: squad Overload/Warp removes the shield/barrier, your Warp-Ammo gun does the rest. Stay in cover &mdash; enemy accuracy is brutal. <span class='spoiler'>Scions: shoot the small head on the side from cover; Adrenaline Rush + Widow can 3-shot one. Focus Scions while squad distracts Harbinger-possessed Collectors.</span> <span class='spoiler'>Collector Ship platforms: be ~level 30, have all ship upgrades, pre-burn heavy ammo on the first wave.</span>" },
+    { h:"Set up ME3 before you import",
+      html:"<span class='hl'>The skill-reset trick:</span> just before finishing ME2, reset your squad points at the Normandy tech lab and <b>don't re-spend them</b>, then save. Import <i>that</i> save into ME3 and you start with all ability points free, instead of ME3 pre-spending them to mirror this build." },
+  ]
+};
+
+const BUILD_ME3 = {
+  intro:"ME3 adds weight/cooldown: a lighter loadout means faster power recharge (aim for +200%). Power combos matter, but ME3 counts only YOUR own casts toward power achievements \u2014 so plan your own power use if you're chasing those on this run. Two strong Soldier styles \u2014 pick one.",
+  sections:[
+    { h:"Pick your style first",
+      html:"<b>(A) Adrenaline Rush classic</b> &mdash; slow time, out-shoot everything; simplest and forgiving. <b>(B) Explosive-Burst combo</b> &mdash; skip Rush, lean on Concussive Shot's near-instant cooldown + Incendiary Ammo's Explosive Burst on a high-RoF gun to constantly stagger and detonate. B clears trash faster; A is safer. Both clear Insanity." },
+    { h:"Leveling order \u2014 Build A (Adrenaline Rush)",
+      html:"<ol class='blist'>"+
+        "<li><b>Adrenaline Rush &rarr; 4+</b> early, then toward 6. Your damage/time-slow engine.</li>"+
+        "<li><b>Incendiary Ammo &rarr; 4</b> with the <b>Explosive Burst</b> evolution (procs on every shot; feeds Pyromaniac).</li>"+
+        "<li><b>Combat Mastery &rarr; 6</b> &mdash; huge weight capacity + survivability; last rank boosts ammo powers ~40%.</li>"+
+        "<li><b>Fitness &rarr; 6</b> (Durability evolutions) for health/shields.</li>"+
+        "<li>Rank-6 Adrenaline Rush: take the <b>Bonus Power</b> evolution so you can fire one power during Rush.</li></ol>" },
+    { h:"Leveling order \u2014 Build B (Explosive Burst combo)",
+      html:"<ol class='blist'>"+
+        "<li><b>Incendiary Ammo &rarr; 6</b> with <b>Explosive Burst</b> &mdash; the heart of the build.</li>"+
+        "<li><b>Concussive Shot &rarr; 6</b> with the evolution that lets it <b>prime and detonate its own Tech Bursts</b> (the only self-comboing power).</li>"+
+        "<li><b>Combat Mastery &rarr; 6</b> (weight + the +40% ammo-power rank).</li>"+
+        "<li><b>Fitness &rarr; 6</b> (Durability).</li>"+
+        "<li>Skip Adrenaline Rush &mdash; Concussive Shot's instant cooldown does more here.</li></ol>" },
+    { h:"Bonus power",
+      html:"<b>Marksman</b> (from Ashley/Kaidan) suits Build B &mdash; +fire rate up to ~50% for more Explosive Burst procs (can't be used inside Adrenaline Rush, so it pairs with B). For Build A, <b>Fortification</b> &mdash; damage reduction + power damage, no conflict; just activate it <i>before</i> your ammo power, since it won't retro-buff an active ammo power." },
+    { h:"Weapons & weight",
+      html:"<span class='hl'>Run a single light weapon</span> to keep cooldown near +200%. <b>M-55 Argus</b> or <b>M-96 Mattock</b> (light, accurate ARs); the <b>Blood Pack Punisher</b> is a standout &mdash; tiny weight, big close-range damage. High-RoF guns (Tempest/Geth Plasma SMG) maximise Explosive Burst for Build B. Level your weapon to <b>10</b> (unlocks <b>Gunsmith</b> on the NG+ run) and fit the <b>ultralight materials mod</b>." },
+    { h:"Squad",
+      html:"Coverage: a tech ally (<b>EDI</b> or <b>Tali</b>) for Overload on shields/synthetics, a biotic (<b>Liara/Garrus</b>) for Warp on armour/barriers and combo priming. <span class='hl'>Give Garrus the N7 Typhoon</span> &mdash; squadmates ignore its recoil and he becomes a damage god while you keep a light gun." },
+    { h:"Tactics & combos",
+      html:"Self-combo: prime with a fire-ammo proc or power, detonate with Concussive Shot or a Frag Grenade for tech/fire bursts &mdash; great for <b>Combined Arms</b>. Strip defences before committing. On Insanity stay mobile, use cover, let the light-gun cooldown keep your loop fast." },
+    { h:"Run notes",
+      html:"<b>First (Normal) run:</b> play naturally, equip Incendiary Ammo early to chip at Pyromaniac. <b>NG+ Insanity:</b> high-level with a maxed weapon &mdash; the short NG+-to-Mars trip is also when you grab <b>Gunsmith</b> (weapon to level 10)." },
+  ]
+};
+
 /* ============ GAME REGISTRY ============ */
 const GAMES = {
-  me1: { label:"ME1", full:"1", data:DATA_ME1, planner:PLANNER_ME1, route:ROUTE_ME1,
+  me1: { label:"ME1", full:"1", data:DATA_ME1, planner:PLANNER_ME1, route:ROUTE_ME1, build:BUILD_ME1,
          priority:["Protheans codex entry","Charismatic / max alignment","Paramour","Sentinel Ally","Krogan Ally","Scan Keepers (Rich / Archivist)","All assignments + planet exploration"] },
-  me2: { label:"ME2", full:"2", data:DATA_ME2, planner:PLANNER_ME2, route:ROUTE_ME2,
+  me2: { label:"ME2", full:"2", data:DATA_ME2, planner:PLANNER_ME2, route:ROUTE_ME2, build:BUILD_ME2,
          priority:["No One Left Behind","Big Game Hunter","The Cure","Eye for an Eye","Rite of Passage","Paramour (ME2)"] },
-  me3: { label:"ME3", full:"3", data:DATA_ME3, planner:PLANNER_ME3, route:ROUTE_ME3,
+  me3: { label:"ME3", full:"3", data:DATA_ME3, planner:PLANNER_ME3, route:ROUTE_ME3, build:BUILD_ME3,
          priority:["Master and Commander","Savior","Hijacker","Problem Solver","Fact Finder","Tunnel Rat","Saboteur","Liberator","Paramour (ME3)"] },
 };
 let CUR = "me1";          // current game key
@@ -985,8 +1094,10 @@ function render(){
       eachItem((it,id)=>{ if(it.loc===grp.key) items.push({it,id}); });
       if (items.length) phasesEl.appendChild(makeSection(grp.num, grp.title, grp.note, items, true));
     });
-  } else {
+  } else if (state.view==="route"){
     renderRoute();
+  } else {
+    renderBuild();
   }
   refreshMeta(); refreshPriority();
 }
@@ -998,7 +1109,51 @@ function renderRoute(){
   });
 }
 
+function renderBuild(){
+  const b = G.build;
+  if (!b){ return; }
+  // intro card
+  const intro = document.createElement("section");
+  intro.className = "phase build-intro";
+  intro.innerHTML = `
+    <div class="phase-head" style="cursor:default">
+      <span class="phase-num">SOLDIER</span>
+      <span class="phase-title">${G.label} Build — Soldier</span>
+    </div>
+    <div class="build-intro-body">${b.intro}</div>`;
+  phasesEl.appendChild(intro);
+
+  // each section as a collapsible card
+  b.sections.forEach((sec,i)=>{
+    const s = document.createElement("section");
+    s.className = "phase build-section";
+    const head = document.createElement("div");
+    head.className = "phase-head";
+    head.innerHTML = `<span class="phase-num build-bullet">${String(i+1).padStart(2,"0")}</span><span class="phase-title build-h">${sec.h}</span><span class="phase-count">▾</span>`;
+    const body = document.createElement("div");
+    body.className = "phase-body";
+    const inner = document.createElement("div");
+    inner.className = "build-body";
+    inner.innerHTML = sec.html;
+    body.appendChild(inner);
+    s.appendChild(head); s.appendChild(body);
+    const caret = head.querySelector(".phase-count");
+    head.addEventListener("click",()=>{
+      const hidden = body.style.display==="none";
+      body.style.display = hidden ? "" : "none";
+      caret.textContent = hidden ? "▾" : "▸";
+    });
+    phasesEl.appendChild(s);
+  });
+}
+
 function refreshMeta(){
+  // build view isn't a checklist — hide progress + priority, skip counting
+  const isBuild = state.view==="build";
+  const ps = document.querySelector(".progress-shell");
+  const pr = document.getElementById("priorityStrip");
+  if (ps) ps.style.display = isBuild ? "none" : "";
+  if (isBuild){ if(pr) pr.innerHTML=""; return; }
   let total=0, done=0;
   eachItem((it,id)=>{ total++; if(isDone(it,id)) done++; });
   const pct = total?Math.round(done/total*100):0;
